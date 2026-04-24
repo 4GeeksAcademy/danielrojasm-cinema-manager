@@ -147,52 +147,52 @@ export function buscarDosAsientosContiguos(
 
 function construirInterfaz(): string {
   return `
-    <section class="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 p-4 sm:p-8">
-      <header class="rounded-3xl border border-cyan-400/40 bg-slate-900/70 p-6 shadow-[0_0_80px_-40px_rgba(34,211,238,0.8)]">
-        <p class="text-xs uppercase tracking-[0.35em] text-cyan-300">Cinema Manager</p>
-        <h1 class="mt-2 text-3xl font-black uppercase tracking-tight text-slate-100 sm:text-4xl">
+    <section class="cinema-app">
+      <header class="cinema-header">
+        <p class="cinema-kicker">Cinema Manager</p>
+        <h1 class="cinema-title">
           Gestor Visual De Asientos
         </h1>
-        <p class="mt-3 max-w-3xl text-sm text-slate-300 sm:text-base">
+        <p class="cinema-description">
           Haz clic en un asiento libre para reservarlo. Si intentas reservar uno ocupado,
           el sistema te mostrara un mensaje claro.
         </p>
       </header>
 
-      <section class="grid gap-4 md:grid-cols-3">
-        <article class="rounded-2xl border border-slate-700 bg-slate-900 p-4">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Estado</p>
-          <p id="mensaje-operacion" class="mt-2 text-sm text-slate-100"></p>
+      <section class="info-grid">
+        <article class="info-card">
+          <p class="info-label">Estado</p>
+          <p id="mensaje-operacion" class="status-message"></p>
         </article>
-        <article class="rounded-2xl border border-slate-700 bg-slate-900 p-4">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Resumen</p>
-          <p id="resumen-asientos" class="mt-2 text-sm text-slate-100"></p>
+        <article class="info-card">
+          <p class="info-label">Resumen</p>
+          <p id="resumen-asientos" class="status-message status-message--neutral"></p>
         </article>
-        <article class="rounded-2xl border border-slate-700 bg-slate-900 p-4">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Sugerencia</p>
-          <p id="mensaje-contiguos" class="mt-2 text-sm text-slate-100"></p>
+        <article class="info-card">
+          <p class="info-label">Sugerencia</p>
+          <p id="mensaje-contiguos" class="status-message status-message--neutral"></p>
         </article>
       </section>
 
-      <section class="rounded-3xl border border-slate-700 bg-slate-900 p-4 sm:p-6">
-        <div class="mb-5 rounded-xl border border-cyan-400/30 bg-cyan-300/10 py-2 text-center text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">
+      <section class="sala-panel">
+        <div class="pantalla-label">
           Pantalla
         </div>
 
-        <div class="mb-4 flex flex-wrap items-center gap-3 text-xs text-slate-300">
-          <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded bg-emerald-400"></span>Libre</span>
-          <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded bg-sky-400"></span>Seleccionado</span>
-          <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded bg-rose-500"></span>Ocupado</span>
-          <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded border border-amber-300"></span>Par sugerido</span>
-          <button id="confirmar-reserva" class="ml-auto rounded-lg border border-cyan-300 bg-cyan-400/20 px-3 py-1.5 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-400/35 disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700/40 disabled:text-slate-400">
+        <div class="leyenda-barra">
+          <span class="leyenda-item"><span class="leyenda-color leyenda-color--libre"></span>Libre</span>
+          <span class="leyenda-item"><span class="leyenda-color leyenda-color--seleccionado"></span>Seleccionado</span>
+          <span class="leyenda-item"><span class="leyenda-color leyenda-color--ocupado"></span>Ocupado</span>
+          <span class="leyenda-item"><span class="leyenda-color leyenda-color--sugerido"></span>Par sugerido</span>
+          <button id="confirmar-reserva" class="btn btn--confirmar">
             Confirmar asientos seleccionados
           </button>
-          <button id="reiniciar-sala" class="ml-auto rounded-lg border border-slate-500 px-3 py-1.5 text-xs font-semibold text-slate-100 transition hover:border-cyan-400 hover:text-cyan-200">
+          <button id="reiniciar-sala" class="btn btn--reiniciar">
             Reiniciar sala
           </button>
         </div>
 
-        <div id="mapa-asientos" class="grid grid-cols-10 gap-2"></div>
+        <div id="mapa-asientos" class="seat-grid"></div>
       </section>
     </section>
   `;
@@ -236,14 +236,14 @@ function iniciarApp(): void {
     const resumen = contarAsientos(sala);
 
     mensajeOperacion.textContent = ultimoMensaje;
-    mensajeOperacion.className = ultimoMensaje.startsWith("Reserva exitosa")
-      ? "mt-2 text-sm text-emerald-300"
-      : "mt-2 text-sm text-rose-300";
+    mensajeOperacion.className = ultimoMensaje.startsWith("Reserva")
+      ? "status-message status-message--success"
+      : "status-message status-message--warning";
 
     mensajeContiguos.textContent = contiguos.mensaje;
     mensajeContiguos.className = contiguos.encontrados
-      ? "mt-2 text-sm text-amber-200"
-      : "mt-2 text-sm text-slate-300";
+      ? "status-message status-message--hint"
+      : "status-message status-message--neutral";
 
     resumenAsientos.textContent = `Ocupados: ${resumen.ocupados} | Disponibles: ${resumen.disponibles}`;
 
@@ -266,15 +266,14 @@ function iniciarApp(): void {
         const ocupado = asiento === 1;
         const seleccionado = seleccionados.has(clave) && !ocupado;
         const sugerido = asientosSugeridos.has(clave) && !ocupado;
-        const estiloBase =
-          "group rounded-lg border px-1 py-2 text-center text-[10px] font-semibold leading-tight transition sm:text-xs disabled:cursor-not-allowed disabled:opacity-70";
+        const estiloBase = "seat-button";
         const estiloEstado = seleccionado
-          ? "border-sky-200/60 bg-sky-400 text-slate-950 hover:bg-sky-300"
+          ? "seat-button--seleccionado"
           : ocupado
-          ? "border-rose-300/30 bg-rose-500 text-white hover:bg-rose-500"
-          : "border-emerald-300/30 bg-emerald-400/90 text-slate-900 hover:bg-emerald-300";
+          ? "seat-button--ocupado"
+          : "seat-button--libre";
         const estiloSugerido = sugerido
-          ? " ring-2 ring-amber-300 ring-offset-2 ring-offset-slate-900"
+          ? " seat-button--sugerido"
           : "";
 
         const boton = document.createElement("button");
@@ -284,13 +283,13 @@ function iniciarApp(): void {
         boton.dataset.fila = String(filaHumana);
         boton.dataset.columna = String(columnaHumana);
         boton.innerHTML = `
-          <span class="mb-1 inline-flex justify-center">
-            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true">
+          <span class="seat-icon-wrap">
+            <svg viewBox="0 0 24 24" class="seat-icon" fill="currentColor" aria-hidden="true">
               <path d="M7 3a2 2 0 0 0-2 2v6h14V5a2 2 0 0 0-2-2H7Zm-4 9h18a1 1 0 0 1 1 1v4h-2v4h-3v-4H7v4H4v-4H2v-4a1 1 0 0 1 1-1Z" />
             </svg>
           </span>
-          <span class="block">F${filaHumana}</span>
-          <span class="block">A${columnaHumana}</span>
+          <span class="seat-label">F${filaHumana}</span>
+          <span class="seat-label">A${columnaHumana}</span>
         `;
 
         boton.addEventListener("click", () => {
